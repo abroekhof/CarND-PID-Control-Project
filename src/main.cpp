@@ -33,8 +33,11 @@ int main()
   uWS::Hub h;
 
   PID pid;
-  // TODO: Initialize the pid variable.
-  pid.Init(1,1,1);
+  // k_p: I figured that the track was about 10m across, so to get full actuation at edges, k_p
+  // would have to be .2. I then experimented with increasing this to get better performance.
+  // k_i: Since there is no steady-state error, I left k_i at zero.
+  // k_d: I adjusted k_d to slow oscillations while increasing k_p.
+  pid.Init(0.5, 0.0, 14);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -52,23 +55,18 @@ int main()
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value;
-          /*
-          * TODO: Calcuate steering value here, remember the steering value is
-          * [-1, 1].
-          * NOTE: Feel free to play around with the throttle and speed. Maybe use
-          * another PID controller to control the speed!
-          */
+
           pid.UpdateError(cte);
-          steer_value = pid.TotalError();
-          steer_value = max(-1, steer_value);
-          steer_value = min(1, steer_value);
+          steer_value = -1 * pid.TotalError();
+          steer_value = std::max(-1.0, steer_value);
+          steer_value = std::min(1.0, steer_value);
           
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
+          msgJson["throttle"] = .5;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);

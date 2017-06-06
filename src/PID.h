@@ -10,6 +10,9 @@ public:
   double i_error;
   double d_error;
 
+  // Store previous CTE.
+  double prev_cte;
+
   /*
   * Coefficients
   */ 

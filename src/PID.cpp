@@ -1,3 +1,4 @@
+#include <iostream>
 #include "PID.h"
 
 using namespace std;
@@ -15,21 +16,21 @@ void PID::Init(double Kp, double Ki, double Kd) {
     PID::Ki = Ki;
     PID::Kd = Kd;
 
-    PID::p_error = 0.0;
-    PID::i_error = 0.0;
-    PID::d_error = 0.0;
+    p_error = 0.0;
+    i_error = 0.0;
+    d_error = 0.0;
+    prev_cte = 0.0;
 }
 
 void PID::UpdateError(double cte) {
     p_error = cte;
-
-    d_error = cte_prev - cte;
-    cte_prev = cte;
-
     i_error += cte;
+    d_error = cte - prev_cte;
+    prev_cte = cte;
 }
 
 double PID::TotalError() {
+    cout << "p: " << Kp*p_error << ", i: " << Ki*i_error << ", d: " << Kd*d_error << "\n";
     return Kp*p_error + Ki*i_error + Kd*d_error;
 }
 
